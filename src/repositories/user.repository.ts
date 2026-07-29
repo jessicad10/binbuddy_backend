@@ -1,42 +1,86 @@
 import { UserModel, IUser } from "../models/user.model";
 
 export interface IUserRepository {
-    getUserByEmail(email: string): Promise<IUser | null>;
-    getUserByUsername(username: string): Promise<IUser | null>;
-    // 5 common mandatory methods for a repository
-    createUser(user: Partial<IUser>): Promise<IUser>;
-    getUserById(id: string): Promise<IUser | null>;
-    getAll(): Promise<IUser[]>;
-    update(id: string, user: Partial<IUser>): Promise<IUser | null>;
-    delete(id: string): Promise<boolean>;
+  getUserByEmail(email: string): Promise<IUser | null>;
+  getUserByResetToken(token: string): Promise<IUser | null>;
+
+  createUser(user: Partial<IUser>): Promise<IUser>;
+
+  getUserById(id: string): Promise<IUser | null>;
+
+  getAll(): Promise<IUser[]>;
+
+  update(id: string, user: Partial<IUser>): Promise<IUser | null>;
+
+  delete(id: string): Promise<boolean>;
+
+  getPaginatedUsers(
+    page: number,
+    limit: number,
+    search?: string
+  ): Promise<{ users: IUser[]; total: number }>;
 }
-export class UserMongoRepository implements IUserRepository {  
-    async getUserById(id: string): Promise<IUser | null> {
-        const found = await UserModel.findOne({ _id: id });
-        return found;
+
+export class UserMongoRepository implements IUserRepository {
+  async getPaginatedUsers(
+    page: number,
+    limit: number,
+    search?: string
+  ): Promise<{ users: IUser[]; total: number }> {
+    const query: any = {};
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      query.$or = [
+        { fullName: searchRegex },
+        { email: searchRegex }
+      ];
     }
-    async getUserByEmail(email: string): Promise<IUser | null> {
-        const found = await UserModel.findOne({ email });
-        return found;
-    }
-    async getUserByUsername(username: string): Promise<IUser | null> {
-        const found = await UserModel.findOne({ username });
-        return found;
-    }
-    async createUser(user: Partial<IUser>): Promise<IUser> {
-        const created = await UserModel.create(user);
-        return created;
-    }
-    async getAll(): Promise<IUser[]> {
-        const found = await UserModel.find();
-        return found;
-    }
-    async update(id: string, user: Partial<IUser>): Promise<IUser | null> {
-        const updated = await UserModel.findByIdAndUpdate(id, user, { new: true });
-        return updated;
-    }
-    async delete(id: string): Promise<boolean> {
-        const deleted = await UserModel.findByIdAndDelete(id);
-        return !!deleted;
-    }
+
+    const total = await UserModel.countDocuments(query);
+    const users = await UserModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    return { users, total };
+  }
+
+  async getUserById(id: string): Promise<IUser | null> {
+    return await UserModel.findOne({ _id: id });
+  }
+
+  async getUserByEmail(email: string): Promise<IUser | null> {
+    return await UserModel.findOne({ email });
+  }
+
+  async getUserByResetToken(token: string): Promise<IUser | null> {
+    return await UserModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+  }
+
+  async createUser(user: Partial<IUser>): Promise<IUser> {
+    return await UserModel.create(user);
+  }
+
+  async getAll(): Promise<IUser[]> {
+    return await UserModel.find();
+  }
+
+  async update(
+    id: string,
+    user: Partial<IUser>
+  ): Promise<IUser | null> {
+    return await UserModel.findByIdAndUpdate(
+      id,
+      user,
+      { new: true }
+    );
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const deleted = await UserModel.findByIdAndDelete(id);
+    return !!deleted;
+  }
 }
