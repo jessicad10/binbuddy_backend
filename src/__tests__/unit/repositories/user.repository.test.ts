@@ -157,4 +157,43 @@ describe("UserMongoRepository Unit Tests", () => {
       expect(result).toEqual({ users: mockUsers, total: 1 });
     });
   });
+
+  describe("Repository Error Handling & Edge Cases", () => {
+    it("should return false if findOneAndUpdate returns null during update", async () => {
+      (UserModel.findByIdAndUpdate as jest.Mock).mockResolvedValue(null);
+      const result = await repository.update("invalid-id", { fullName: "Test" });
+      expect(result).toBeNull();
+    });
+
+    it("should handle empty search term in getPaginatedUsers", async () => {
+      (UserModel.countDocuments as jest.Mock).mockResolvedValue(0);
+      const mockFindChain = {
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([]),
+      };
+      (UserModel.find as jest.Mock).mockReturnValue(mockFindChain);
+      const result = await repository.getPaginatedUsers(1, 10, "");
+      expect(UserModel.countDocuments).toHaveBeenCalledWith({});
+      expect(result.users).toEqual([]);
+    });
+
+    it("should calculate correct skip offset for page 1", async () => {
+      (UserModel.countDocuments as jest.Mock).mockResolvedValue(0);
+      const mockFindChain = {
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([]),
+      };
+      (UserModel.find as jest.Mock).mockReturnValue(mockFindChain);
+      await repository.getPaginatedUsers(1, 10);
+      expect(mockFindChain.skip).toHaveBeenCalledWith(0);
+    });
+
+    it("should return false if findOneAndDelete returns null during delete", async () => {
+      (UserModel.findByIdAndDelete as jest.Mock).mockResolvedValue(null);
+      const result = await repository.delete("non-existent");
+      expect(result).toBe(false);
+    });
+  });
 });
