@@ -9,6 +9,8 @@ export const SECRET_KEY: string =
     process.env.SECRET_KEY || "merosecretkey";
 export const EMAIL_USER: string = process.env.EMAIL_USER || "jessicad10@gmail.com";
 export const EMAIL_PASS: string = process.env.EMAIL_PASS || "cnkecvfckziitrid";
+export const FRONTEND_URL: string =
+    process.env.FRONTEND_URL || "http://192.168.1.73:3000";
 
 // same as 
 // export {
