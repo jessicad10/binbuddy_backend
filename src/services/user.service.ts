@@ -161,6 +161,23 @@ export class UserService {
     return sanitizeUser(updatedUser);
   }
 
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await userRepository.getUserById(userId);
+    if (!user) {
+      throw new HttpException(404, "User not found");
+    }
+
+    const isCurrentPasswordValid = await bcryptjs.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      throw new HttpException(400, "Current password is incorrect");
+    }
+
+    const hashedNewPassword = await bcryptjs.hash(newPassword, 10);
+    await userRepository.update(userId, { password: hashedNewPassword });
+
+    return { message: "Password changed successfully" };
+  }
+
   async forgotPassword(email: string) {
     const user = await userRepository.getUserByEmail(email);
     if (!user) {
