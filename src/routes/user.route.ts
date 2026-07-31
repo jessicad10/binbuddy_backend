@@ -21,6 +21,11 @@ userRouter.patch(
     uploadProfileImage.single("profileImage"),
     userController.updateProfilePhoto.bind(userController)
 );
+userRouter.patch(
+    "/change-password",
+    authorizedMiddleware,
+    userController.changePassword.bind(userController)
+);
 userRouter.get(
     "/whoami",
     authorizedMiddleware,
