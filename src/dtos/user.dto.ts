@@ -53,4 +53,11 @@ export const AdminUpdateUserDTO = z.object({
   role: z.enum(["admin", "user"]).optional(),
 });
 
-export type AdminUpdateUserDTO = z.infer<typeof AdminUpdateUserDTO>;
+export type AdminUpdateUserDTO = z.infer<typeof AdminUpdateUserDTO>;
+
+export const ChangePasswordDTO = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters long"),
+});
+
+export type ChangePasswordDTO = z.infer<typeof ChangePasswordDTO>;
