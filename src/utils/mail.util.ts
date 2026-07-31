@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { EMAIL_USER, EMAIL_PASS } from "../configs/constant";
+import { EMAIL_USER, EMAIL_PASS, FRONTEND_URL } from "../configs/constant";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendResetPasswordEmail = async (email: string, token: string) => {
-  const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+  const resetLink = `${FRONTEND_URL}/reset-password?token=${token}`;
   
   const mailOptions = {
     from: `"BinBuddy Support" <${EMAIL_USER}>`,
@@ -30,12 +30,18 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
           Please click the button below to complete the password reset process. This link will remain active for 1 hour.
         </p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetLink}" style="background-color: #0f3d2e; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
-            Reset My Password
-          </a>
-        </div>
-        <p style="color: #777; font-size: 12px; line-height: 1.5;">
+         <div style="text-align: center; margin: 30px 0;">
+           <a href="${resetLink}" style="background-color: #0f3d2e; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
+             Reset My Password
+           </a>
+         </div>
+          <p style="color: #555; font-size: 14px; line-height: 1.6;">
+            Using the BinBuddy mobile app? Use this reset token instead:
+          </p>
+          <p style="font-size: 18px; font-weight: bold; letter-spacing: 1px; color: #0f3d2e; font-family: monospace; word-break: break-all;">
+            This is your reset token: ${token}
+          </p>
+         <p style="color: #777; font-size: 12px; line-height: 1.5;">
           If you did not request this reset, please ignore this email and your password will remain unchanged.
         </p>
         <hr style="border: 0; border-top: 1px solid #e0e0e0; margin-top: 30px; margin-bottom: 20px;">
